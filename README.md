@@ -1,7 +1,7 @@
 cryptonote-nodejs-pool
 ======================
 
-High performance Node.js (with native C addons) mining pool for CryptoNote based coins. Comes with lightweight example front-end script which uses the pool's AJAX API. Support for Cryptonight (Original, Monero v7, Stellite v7), Cryptonight Light (Original, Aeon v7, IPBC) Cryptonight Fast (Electronero/Crystaleum), and Cryptonight Heavy (Sumokoin) algorithms.
+High performance Node.js (with native C addons) mining pool for CryptoNote based coins. Comes with lightweight example front-end script which uses the pool's AJAX API. Support for Cryptonight (Original, RandomX sispop) Cryptonight Fast (Electronero/Crystaleum), and Cryptonight Heavy (Sumokoin) algorithms.
 
 
 #### Table of Contents
@@ -84,7 +84,7 @@ Features
 
 #### Extra features
 * An easily extendable, responsive, light-weight front-end using API to display data
-* Onishin's [keepalive function](https://github.com/perl5577/cpuminer-multi/commit/0c8aedb)
+* 2realminers [keepalive function](https://github.com/perl5577/cpuminer-multi/commit/0c8aedb)
 * Support for merged mining
 * Support for slush mining system (disabled by default)
 * E-Mail Notifications on worker connected, disconnected (timeout) or banned (support MailGun, SMTP and Sendmail)
@@ -98,7 +98,7 @@ Usage
 #### Requirements
 * Coin daemon(s) (find the coin's repo and build latest version from source)
 * [Node.js](http://nodejs.org/) v11.0+
-  * For Ubuntu: 
+  * For Ubuntu: 18.04 - 20.*
  ```
   curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash
   sudo apt-get install -y nodejs
@@ -141,7 +141,10 @@ you are using - a good place to start with redis is [data persistence](http://re
 
 **Do not run the pool as root** : create a new user without ssh access to avoid security issues :
 ```bash
-sudo adduser --disabled-password --disabled-login your-user
+```
+sudo adduser your-user
+```
+sudo usermod -aG sudo your-user
 ```
 To login with this user : 
 ```
@@ -154,7 +157,7 @@ sudo su - your-user
 Clone the repository and run `npm update` for all the dependencies to be installed:
 
 ```bash
-git clone https://github.com/dvandal/cryptonote-nodejs-pool.git pool
+git clone https://github.com/2realminers/sispop-pool.git pool
 cd pool
 
 npm update
@@ -162,451 +165,326 @@ npm update
 
 #### 2) Configuration
 
-Copy the `config_examples/COIN.json` file of your choice to `config.json` then overview each options and change any to match your preferred setup.
+Copy  `this code and save in pool folder` file of your choice to `config.json` then overview each options and change any to match your preferred setup.
 
 Explanation for each field:
 ```javascript
-/* Pool host displayed in notifications and front-end */
-"poolHost": "your.pool.host",
+{
+  "poolHost": "randomx.2realminers.com",
 
-/* Used for storage in redis so multiple coins can share the same redis instance. */
-"coin": "monero", // Must match the parentCoin variable in config.js
+  "coin": "sispop",
+  "symbol": "SISPOP",
+  "coinUnits": 1000000000,
+  "coinDecimalPlaces": 4,
+  "coinDifficultyTarget": 120,
+  "blockchainExplorer": "https://explorer.sispop.site/block/{id}",
+  "transactionExplorer": "https://explorer.sispop.site/tx/{id}",
+  "daemonType": "default",
+  "cnAlgorithm": "randomx",
+  "cnVariant": 0,
+  "cnBlobType": 5,
+  "includeHeight": true,
+  "isRandomX": true,
 
-/* Used for front-end display */
-"symbol": "XMR",
-
-/* Minimum units in a single coin, see COIN constant in DAEMON_CODE/src/cryptonote_config.h */
-"coinUnits": 1000000000000,
-
-/* Number of coin decimals places for notifications and front-end */
-"coinDecimalPlaces": 4,
-  
-/* Coin network time to mine one block, see DIFFICULTY_TARGET constant in DAEMON_CODE/src/cryptonote_config.h */
-"coinDifficultyTarget": 120,
-
-"blockchainExplorer": "http://blockexplorer.arqma.com/block/{id}",  //used on blocks page to generate hyperlinks.
-"transactionExplorer": "http://blockexplorer.arqma.com/tx/{id}",    //used on the payments page to generate hyperlinks
-
-/* Set daemon type. Supported values: default, forknote (Fix block height + 1), bytecoin (ByteCoin Wallet RPC API) */
-"daemonType": "default",
-
-/* Set Cryptonight algorithm settings.
-   Supported algorithms: cryptonight (default). cryptonight_light and cryptonight_heavy
-   Supported variants for "cryptonight": 0 (Original), 1 (Monero v7), 3 (Stellite / XTL)
-   Supported variants for "cryptonight_light": 0 (Original), 1 (Aeon v7), 2 (IPBC)
-   Supported blob types: 0 (Cryptonote), 1 (Forknote v1), 2 (Forknote v2), 3 (Cryptonote v2 / Masari) */
-"cnAlgorithm": "cryptonight",
-"cnVariant": 1,
-"cnBlobType": 0,
-"includeHeight":false, /*true to include block.height in job to miner*/
-"includeAlgo":"cn/wow", /*wownero specific change to include algo in job to miner*/	
-"isRandomX": true,
-/* Logging */
-"logging": {
-
+  "logging": {
     "files": {
-
-        /* Specifies the level of log output verbosity. This level and anything
-           more severe will be logged. Options are: info, warn, or error. */
-        "level": "info",
-
-        /* Directory where to write log files. */
-        "directory": "logs",
-
-        /* How often (in seconds) to append/flush data to the log files. */
-        "flushInterval": 5
+      "level": "info",
+      "directory": "logs",
+      "flushInterval": 5
     },
-
     "console": {
-        "level": "info",
-        /* Gives console output useful colors. If you direct that output to a log file
-           then disable this feature to avoid nasty characters in the file. */
-        "colors": true
+      "level": "info",
+      "colors": true
     }
-},
-"childPools":[ {"poolAddress":"your wallet",
-                    "intAddressPrefix": null,
-                    "coin": "MCN",  	//must match COIN name in the child pools config.json
-                    "childDaemon": {
-                        "host": "127.0.0.1",
-                        "port": 26081
-                    },
-                    "pattern": "^Vdu",  //regex to identify which childcoin the miner specified in password. eg) Vdu is first 3 chars of a MCN wallet address.
-                    "blockchainExplorer": "https://explorer.mcn.green/?hash={id}#blockchain_block",
-                    "transactionExplorer": "https://explorer.mcn.green/?hash={id}#blockchain_transaction",
-                    "api": "https://multi-miner.smartcoinpool.net/apiMerged1",
-                    "enabled": true
-                    }
-]
-/* Modular Pool Server */
-"poolServer": {
+  },
+  "childPools": null,
+  "poolServer": {
     "enabled": true,
-    "mergedMining":false,
-    /* Set to "auto" by default which will spawn one process/fork/worker for each CPU
-       core in your system. Each of these workers will run a separate instance of your
-       pool(s), and the kernel will load balance miners using these forks. Optionally,
-       the 'forks' field can be a number for how many forks will be spawned. */
+    "mergedMining": false,
     "clusterForks": "auto",
-
-    /* Address where block rewards go, and miner payments come from. */
-    "poolAddress": "your wallet",
-    
-    /* This is the Public address prefix used for miner login validation. */
-    "pubAddressPrefix": 343,
-    
-    /* This is the Integrated address prefix used for miner login validation. */
-    "intAddressPrefix": 340,
-    
-    /* This is the Subaddress prefix used for miner login validation. */
-    "subAddressPrefix": 439,
-    
-    /* Poll RPC daemons for new blocks every this many milliseconds. */
+    "poolAddress": "your-wallet-address",
+    "intAddressPrefix": 19,
     "blockRefreshInterval": 1000,
-
-    /* How many seconds until we consider a miner disconnected. */
     "minerTimeout": 900,
-
-    "sslCert": "./cert.pem", // The SSL certificate
-    "sslKey": "./privkey.pem", // The SSL private key
-    "sslCA": "./chain.pem" // The SSL certificate authority chain
-    
+    "sslCert": "./cert.pem",
+    "sslKey": "./privkey.pem",
+    "sslCA": "./chain.pem",
     "ports": [
-        {
-            "port": 3333, // Port for mining apps to connect to
-            "difficulty": 2000, // Initial difficulty miners are set to
-            "desc": "Low end hardware" // Description of port
-        },
-        {
-            "port": 4444,
-            "difficulty": 15000,
-            "desc": "Mid range hardware"
-        },
-        {
-            "port": 5555,
-            "difficulty": 25000,
-            "desc": "High end hardware"
-        },
-        {
-            "port": 7777,
-            "difficulty": 500000,
-            "desc": "Cloud-mining / NiceHash"
-        },
-        {
-            "port": 8888,
-            "difficulty": 25000,
-            "desc": "Hidden port",
-            "hidden": true // Hide this port in the front-end
-        },
-        {
-            "port": 9999,
-            "difficulty": 20000,
-            "desc": "SSL connection",
-            "ssl": true // Enable SSL
-        }
+      {
+        "port": 6666,
+        "difficulty": 5000,
+        "desc": "Low end hardware"
+      },
+      {
+        "port": 6667,
+        "difficulty": 15000,
+        "desc": "Mid range hardware"
+      },
+      {
+        "port": 6668,
+        "difficulty": 500000,
+        "desc": "High end hardware"
+      }
+      
     ],
-
-    /* Variable difficulty is a feature that will automatically adjust difficulty for
-       individual miners based on their hashrate in order to lower networking and CPU
-       overhead. */
     "varDiff": {
-        "minDiff": 100, // Minimum difficulty
-        "maxDiff": 100000000,
-        "targetTime": 60, // Try to get 1 share per this many seconds
-        "retargetTime": 30, // Check to see if we should retarget every this many seconds
-        "variancePercent": 30, // Allow time to vary this % from target without retargeting
-        "maxJump": 100 // Limit diff percent increase/decrease in a single retargeting
+      "minDiff": 100,
+      "maxDiff": 100000000,
+      "targetTime": 120,
+      "retargetTime": 60,
+      "variancePercent": 30,
+      "maxJump": 100
     },
-	
-    /* Set difficulty on miner client side by passing <address> param with +<difficulty> postfix */
-    "fixedDiff": {
-        "enabled": true,
-        "separator": "+", // Character separator between <address> and <difficulty>
-    },
-
-    /* Set payment ID on miner client side by passing <address>.<paymentID> */
     "paymentId": {
-        "addressSeparator": ".", // Character separator between <address> and <paymentID>
-        "validation": true // Refuse login if non alphanumeric characters in <paymentID>
-        "validations": ["1,16", "64"], //regex quantity. range 1-16 characters OR exactly 64 character
-        "ban": true  // ban the miner for invalid paymentid
+      "addressSeparator": ".",
+      "validation": false,
+      "validations": ["1,16", "64"],
+      "ban": true
     },
-
-    /* Feature to trust share difficulties from miners which can
-       significantly reduce CPU load. */
+    "fixedDiff": {
+      "enabled": true,
+      "addressSeparator": "."
+    },
     "shareTrust": {
-        "enabled": true,
-        "min": 10, // Minimum percent probability for share hashing
-        "stepDown": 3, // Increase trust probability % this much with each valid share
-        "threshold": 10, // Amount of valid shares required before trusting begins
-        "penalty": 30 // Upon breaking trust require this many valid share before trusting
+      "enabled": true,
+      "min": 10,
+      "stepDown": 3,
+      "threshold": 10,
+      "penalty": 30
     },
-
-    /* If under low-diff share attack we can ban their IP to reduce system/network load. */
     "banning": {
-        "enabled": true,
-        "time": 600, // How many seconds to ban worker for
-        "invalidPercent": 25, // What percent of invalid shares triggers ban
-        "checkThreshold": 30 // Perform check when this many shares have been submitted
+      "enabled": false,
+      "time": 600,
+      "invalidPercent": 25,
+      "checkThreshold": 30
     },
-    
-    /* Slush Mining is a reward calculation technique which disincentivizes pool hopping and rewards 'loyal' miners by valuing younger shares higher than older shares. Remember adjusting the weight!
-    More about it here: https://mining.bitcoin.cz/help/#!/manual/rewards */
     "slushMining": {
-        "enabled": false, // Enables slush mining. Recommended for pools catering to professional miners
-        "weight": 300 // Defines how fast the score assigned to a share declines in time. The value should roughly be equivalent to the average round duration in seconds divided by 8. When deviating by too much numbers may get too high for JS.
+      "enabled": false,
+      "weight": 300,
+      "blockTime": 60,
+      "lastBlockCheckRate": 1
     }
-},
+  },
 
-/* Module that sends payments to miners according to their submitted shares. */
-"payments": {
+  "payments": {
+                "enabled": true,
+                "interval": 1800,
+                "maxAddresses": 15,
+                "mixin": 15,
+                "priority": 1,
+                "transferFee": 50000000,
+                "dynamicTransferFee": true,
+                "minerPayFee": true,
+                "minPayment": 50000000000,
+                "maxPayment": 50000000000000,
+                "maxTransactionAmount": 50000000000000,
+                "denomination": 100000000
+        },
+
+        "blockUnlocker": {
+                "enabled": true,
+                "interval": 30,
+                "depth": 60,
+                "poolFee": 0.8,
+                "devDonation": 0.2,
+                "useFirstVout": true
+        },
+
+  "api": {
     "enabled": true,
-    "interval": 300, // How often to run in seconds
-    "maxAddresses": 50, // Split up payments if sending to more than this many addresses
-    "mixin": 5, // Number of transactions yours is indistinguishable from
-    "priority": 0, // The transaction priority    
-    "transferFee": 4000000000, // Fee to pay for each transaction
-    "dynamicTransferFee": true, // Enable dynamic transfer fee (fee is multiplied by number of miners)
-    "minerPayFee" : true, // Miner pays the transfer fee instead of pool owner when using dynamic transfer fee
-    "minPayment": 100000000000, // Miner balance required before sending payment
-    "maxPayment": null, // Maximum miner balance allowed in miner settings
-    "maxTransactionAmount": 0, // Split transactions by this amount (to prevent "too big transaction" error)
-    "denomination": 10000000000 // Truncate to this precision and store remainder
-},
+    "hashrateWindow": 600,
+    "updateInterval": 5,
+    "bindIp": "0.0.0.0",
+    "port": 8117,
+    "blocks": 30,
+    "payments": 30,
+    "password": "yourpassword",
+    "ssl": true,
+    "sslPort": 8119,
+    "sslCert": "./cert.pem",
+    "sslKey": "./newkey.pem",
+    "sslCA": "./chain.pem",
+    "trustProxyIP": false
+  },
 
-/* Module that monitors the submitted block maturities and manages rounds. Confirmed
-   blocks mark the end of a round where workers' balances are increased in proportion
-   to their shares. */
-"blockUnlocker": {
-    "enabled": true,
-    "interval": 30, // How often to check block statuses in seconds
-
-    /* Block depth required for a block to unlocked/mature. Found in daemon source as
-       the variable CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW */
-    "depth": 60,
-    "poolFee": 0.8, // 0.8% pool fee (1% total fee total including donations)
-    "soloFee": 0, // solo fee
-    "finderReward": 0.2, // 0.2 finder reward
-    "devDonation": 0.2, // 0.2% donation to send to pool dev
-    "networkFee": 0.0, // Network/Governance fee (used by some coins like Loki)
-    
-    /* Some forknote coins have an issue with block height in RPC request, to fix you can enable this option.
-       See: https://github.com/forknote/forknote-pool/issues/48 */
-    "fixBlockHeightRPC": false
-},
-
-/* AJAX API used for front-end website. */
-"api": {
-    "enabled": true,
-    "hashrateWindow": 600, // How many second worth of shares used to estimate hash rate
-    "updateInterval": 3, // Gather stats and broadcast every this many seconds
-    "bindIp": "0.0.0.0", // Bind API to a specific IP (set to 0.0.0.0 for all)
-    "port": 8117, // The API port
-    "blocks": 30, // Amount of blocks to send at a time
-    "payments": 30, // Amount of payments to send at a time
-    "password": "your_password", // Password required for admin stats
-    "ssl": false, // Enable SSL API
-    "sslPort": 8119, // The SSL port
-    "sslCert": "./cert.pem", // The SSL certificate
-    "sslKey": "./privkey.pem", // The SSL private key
-    "sslCA": "./chain.pem", // The SSL certificate authority chain
-    "trustProxyIP": false // Proxy X-Forwarded-For support
-},
-
-/* Coin daemon connection details (default port is 18981) */
-"daemon": {
+  "daemon": {
     "host": "127.0.0.1",
-    "port": 18981
-},
+    "port": 30000
+  },
 
-/* Wallet daemon connection details (default port is 18980) */
-"wallet": {
+  "wallet": {
     "host": "127.0.0.1",
-    "port": 18982,
-    "password": "--rpc-password"
-},
+    "port": 18082
+  },
 
-/* Redis connection info (default port is 6379) */
-"redis": {
+  "redis": {
     "host": "127.0.0.1",
     "port": 6379,
-    "auth": null, // If set, client will run redis auth command on connect. Use for remote db
-    "db": 0, // Set the REDIS database to use (default to 0)
-    "cleanupInterval": 15 // Set the REDIS database cleanup interval (in days)
-}
+    "auth": null,
+    "db": 7,
+    "cleanupInterval": 15
+  },
 
-/* Pool Notifications */
-"notifications": {
+  "notifications": {
     "emailTemplate": "email_templates/default.txt",
     "emailSubject": {
-        "emailAdded": "Your email was registered",
-        "workerConnected": "Worker %WORKER_NAME% connected",
-        "workerTimeout": "Worker %WORKER_NAME% stopped hashing",
-        "workerBanned": "Worker %WORKER_NAME% banned",
-        "blockFound": "Block %HEIGHT% found !",
-        "blockUnlocked": "Block %HEIGHT% unlocked !",
-        "blockOrphaned": "Block %HEIGHT% orphaned !",
-        "payment": "We sent you a payment !"
+      "emailAdded": "Your email was registered",
+      "workerConnected": "Worker %WORKER_NAME% connected",
+      "workerTimeout": "Worker %WORKER_NAME% stopped hashing",
+      "workerBanned": "Worker %WORKER_NAME% banned",
+      "blockFound": "Block %HEIGHT% found !",
+      "blockUnlocked": "Block %HEIGHT% unlocked !",
+      "blockOrphaned": "Block %HEIGHT% orphaned !",
+      "payment": "We sent you a payment !"
     },
     "emailMessage": {
-        "emailAdded": "Your email has been registered to receive pool notifications.",
-        "workerConnected": "Your worker %WORKER_NAME% for address %MINER% is now connected from ip %IP%.",
-        "workerTimeout": "Your worker %WORKER_NAME% for address %MINER% has stopped submitting hashes on %LAST_HASH%.",
-        "workerBanned": "Your worker %WORKER_NAME% for address %MINER% has been banned.",
-        "blockFound": "Block found at height %HEIGHT% by miner %MINER% on %TIME%. Waiting maturity.",
-        "blockUnlocked": "Block mined at height %HEIGHT% with %REWARD% and %EFFORT% effort on %TIME%.",
-        "blockOrphaned": "Block orphaned at height %HEIGHT% :(",
-        "payment": "A payment of %AMOUNT% has been sent to %ADDRESS% wallet."
+      "emailAdded": "Your email has been registered to receive pool notifications.",
+      "workerConnected": "Your worker %WORKER_NAME% for address %MINER% is now connected from ip %IP%.",
+      "workerTimeout": "Your worker %WORKER_NAME% for address %MINER% has stopped submitting hashes on %LAST_HASH%.",
+      "workerBanned": "Your worker %WORKER_NAME% for address %MINER% has been banned.",
+      "blockFound": "Block found at height %HEIGHT% by miner %MINER% on %TIME%. Waiting maturity.",
+      "blockUnlocked": "Block mined at height %HEIGHT% with %REWARD% and %EFFORT% effort on %TIME%.",
+      "blockOrphaned": "Block orphaned at height %HEIGHT% :(",
+      "payment": "A payment of %AMOUNT% has been sent to %ADDRESS% wallet."
     },
     "telegramMessage": {
-        "workerConnected": "Your worker _%WORKER_NAME%_ for address _%MINER%_ is now connected from ip _%IP%_.",
-        "workerTimeout": "Your worker _%WORKER_NAME%_ for address _%MINER%_ has stopped submitting hashes on _%LAST_HASH%_.",
-        "workerBanned": "Your worker _%WORKER_NAME%_ for address _%MINER%_ has been banned.",
-        "blockFound": "*Block found at height* _%HEIGHT%_ *by miner* _%MINER%_*! Waiting maturity.*",
-        "blockUnlocked": "*Block mined at height* _%HEIGHT%_ *with* _%REWARD%_ *and* _%EFFORT%_ *effort on* _%TIME%_*.*",
-        "blockOrphaned": "*Block orphaned at height* _%HEIGHT%_ *:(*",
-        "payment": "A payment of _%AMOUNT%_ has been sent."
+      "workerConnected": "Your worker _%WORKER_NAME%_ for address _%MINER%_ is now connected from ip _%IP%_.",
+      "workerTimeout": "Your worker _%WORKER_NAME%_ for address _%MINER%_ has stopped submitting hashes on _%LAST_HASH%_.",
+      "workerBanned": "Your worker _%WORKER_NAME%_ for address _%MINER%_ has been banned.",
+      "blockFound": "*Block found at height* _%HEIGHT%_ *by miner* _%MINER%_*! Waiting maturity.*",
+      "blockUnlocked": "*Block mined at height* _%HEIGHT%_ *with* _%REWARD%_ *and* _%EFFORT%_ *effort on* _%TIME%_*.*",
+      "blockOrphaned": "*Block orphaned at height* _%HEIGHT%_ *:(*",
+      "payment": "A payment of _%AMOUNT%_ has been sent."
     }
-},
+  },
 
-/* Email Notifications */
-"email": {
+  "email": {
     "enabled": false,
-    "fromAddress": "your@email.com", // Your sender email
-    "transport": "sendmail", // The transport mode (sendmail, smtp or mailgun)
-    
-    // Configuration for sendmail transport
-    // Documentation: http://nodemailer.com/transports/sendmail/
+    "fromAddress": "your@email.com",
+    "transport": "sendmail",
     "sendmail": {
-        "path": "/usr/sbin/sendmail" // The path to sendmail command
+      "path": "/usr/sbin/sendmail"
     },
-    
-    // Configuration for SMTP transport
-    // Documentation: http://nodemailer.com/smtp/
     "smtp": {
-        "host": "smtp.example.com", // SMTP server
-        "port": 587, // SMTP port (25, 587 or 465)
-        "secure": false, // TLS (if false will upgrade with STARTTLS)
-        "auth": {
-            "user": "username", // SMTP username
-            "pass": "password" // SMTP password
-        },
-        "tls": {
-            "rejectUnauthorized": false // Reject unauthorized TLS/SSL certificate
-        }
+      "host": "smtp.example.com",
+      "port": 587,
+      "secure": false,
+      "auth": {
+        "user": "username",
+        "pass": "password"
+      },
+      "tls": {
+        "rejectUnauthorized": false
+      }
     },
-    
-    // Configuration for MailGun transport
     "mailgun": {
-        "key": "your-private-key", // Your MailGun Private API key
-        "domain": "mg.yourdomain" // Your MailGun domain
+      "key": "your-private-key",
+      "domain": "mg.yourdomain"
     }
-},
+  },
 
-/* Telegram channel notifications.
-   See Telegram documentation to setup your bot: https://core.telegram.org/bots#3-how-do-i-create-a-bot */
-"telegram": {
+  "telegram": {
     "enabled": false,
-    "botName": "", // The bot user name.
-    "token": "", // The bot unique authorization token
-    "channel": "", // The telegram channel id (ex: BlockHashMining)
+    "botName": "",
+    "token": "",
+    "channel": "",
     "channelStats": {
-        "enabled": false, // Enable periodical updater of pool statistics in telegram channel
-        "interval": 5 // Periodical update interval (in minutes)
+      "enabled": false,
+      "interval": 30
     },
-    "botCommands": { // Set the telegram bot commands
-        "stats": "/stats", // Pool statistics
-         "enable": "/enable", // Enable telegram notifications
-        "disable": "/disable" // Disable telegram notifications
-    }    
-},
+    "botCommands": {
+      "stats": "/stats",
+      "report": "/report",
+      "notify": "/notify",
+      "blocks": "/blocks"
+    }
+  },
 
-/* Monitoring RPC services. Statistics will be displayed in Admin panel */
-"monitoring": {
+  "monitoring": {
     "daemon": {
-        "checkInterval": 60, // Interval of sending rpcMethod request
-        "rpcMethod": "getblockcount" // RPC method name
+      "checkInterval": 60,
+      "rpcMethod": "getblockcount"
     },
     "wallet": {
-        "checkInterval": 60,
-        "rpcMethod": "getbalance"
+      "checkInterval": 60,
+      "rpcMethod": "getbalance"
     }
-},
+  },
 
-/* Prices settings for market and price charts */
-"prices": {
-    "source": "cryptonator", // Exchange (supported values: cryptonator, altex, crex24, cryptopia, stocks.exchange, tradeogre, maplechange)
-    "currency": "USD" // Default currency
-},
-	    
-/* Collect pool statistics to display in frontend charts  */
-"charts": {
+  "prices": {
+    "source": "cryptonator",
+    "currency": "USD"
+  },
+
+  "charts": {
     "pool": {
-        "hashrate": {
-            "enabled": true, // Enable data collection and chart displaying in frontend
-            "updateInterval": 60, // How often to get current value
-            "stepInterval": 1800, // Chart step interval calculated as average of all updated values
-            "maximumPeriod": 86400 // Chart maximum periods (chart points number = maximumPeriod / stepInterval = 48)
-        },
-        "miners": {
-            "enabled": true,
-            "updateInterval": 60,
-            "stepInterval": 1800,
-            "maximumPeriod": 86400
-        },
-        "workers": {
-            "enabled": true,
-            "updateInterval": 60,
-            "stepInterval": 1800,
-            "maximumPeriod": 86400
-        },
-        "difficulty": {
-            "enabled": true,
-            "updateInterval": 1800,
-            "stepInterval": 10800,
-            "maximumPeriod": 604800
-        },
-        "price": {
-            "enabled": true,
-            "updateInterval": 1800,
-            "stepInterval": 10800,
-            "maximumPeriod": 604800
-        },
-        "profit": {
-            "enabled": true,
-            "updateInterval": 1800,
-            "stepInterval": 10800,
-            "maximumPeriod": 604800
-        }
-
+      "hashrate": {
+        "enabled": true,
+        "updateInterval": 60,
+        "stepInterval": 1800,
+        "maximumPeriod": 86400
+      },
+      "miners": {
+        "enabled": true,
+        "updateInterval": 60,
+        "stepInterval": 1800,
+        "maximumPeriod": 86400
+      },
+      "workers": {
+        "enabled": true,
+        "updateInterval": 60,
+        "stepInterval": 1800,
+        "maximumPeriod": 86400
+      },
+      "difficulty": {
+        "enabled": true,
+        "updateInterval": 1800,
+        "stepInterval": 10800,
+        "maximumPeriod": 604800
+      },
+      "price": {
+        "enabled": true,
+        "updateInterval": 1800,
+        "stepInterval": 10800,
+        "maximumPeriod": 604800
+      },
+      "profit": {
+        "enabled": true,
+        "updateInterval": 1800,
+        "stepInterval": 10800,
+        "maximumPeriod": 604800
+      }
     },
-    "user": { // Chart data displayed in user stats block
-        "hashrate": {
-            "enabled": true,
-            "updateInterval": 180,
-            "stepInterval": 1800,
-            "maximumPeriod": 86400
-        },
-        "worker_hashrate": {
-            "enabled": true,
-            "updateInterval": 60,
-            "stepInterval": 60,
-            "maximumPeriod": 86400
-        },
-        "payments": { // Payment chart uses all user payments data stored in DB
-            "enabled": true
-        }
+    "user": {
+      "hashrate": {
+        "enabled": true,
+        "updateInterval": 180,
+        "stepInterval": 1800,
+        "maximumPeriod": 86400
+      },
+      "worker_hashrate": {
+        "enabled": true,
+        "updateInterval": 60,
+        "stepInterval": 60,
+        "maximumPeriod": 86400
+      },
+      "payments": {
+        "enabled": true
+      }
     },
     "blocks": {
-        "enabled": true,
-        "days": 30 // Number of days displayed in chart (if value is 1, display last 24 hours)
+      "enabled": true,
+      "days": 30
     }
+  }
 }
+
 ```
 
 #### 3) Start the pool
 
 ```bash
-node init.js
+node init.js --config=sispop.json
 ```
 
 The file `config.json` is used by default but a file can be specified using the `-config=file` command argument, for example:
@@ -614,7 +492,11 @@ The file `config.json` is used by default but a file can be specified using the 
 ```bash
 node init.js -config=config_backup.json
 ```
-
+#### 3.1) Start payment
+Go to your command line wallet
+```bash
+./sispop-wallet-rpc --rpc-bind-port 18082 --wallet-file WALLETNAME --password PASSWORDWALLET --daemon-address http://127.0.0.1:30000/ --untrusted-daemon --disable-rpc-login --rpc-bind-ip 127.0.0.1 --confirm-external-bind
+```
 This software contains four distinct modules:
 * `pool` - Which opens ports for miners to connect and processes shares
 * `api` - Used by the website to display network, pool and miners' data
@@ -805,23 +687,7 @@ Donations
 
 Thanks for supporting my works on this project! If you want to make a donation to [Dvandal](https://github.com/dvandal/), the developper of this project, you can send any amount of your choice to one of theses addresses:
 
-* Bitcoin (BTC): `392gS9zuYQBghmMpK3NipBTaQcooR9UoGy`
-* Bitcoin Cash (BCH): `qp46fz7ht8xdhwepqzhk7ct3aa0ucypfgv5qvv57td`
-* Monero (XMR): `49WyMy9Q351C59dT913ieEgqWjaN12dWM5aYqJxSTZCZZj1La5twZtC3DyfUsmVD3tj2Zud7m6kqTVDauRz53FqA9zphHaj`
-* Dash (DASH): `XgFnxEu1ru7RTiM4uH1GWt2yseU1BVBqWL`
-* Ethereum (ETH): `0x8c42D411545c9E1963ff56A91d06dEB8C4A9f444`
-* Ethereum Classic (ETC): `0x4208D6775A2bbABe64C15d76e99FE5676F2768Fb`
-* Litecoin (LTC): `LS9To9u2C95VPHKauRMEN5BLatC8C1k4F1`
-* USD Coin (USDC): `0xb5c6BEc389252F24dd3899262AC0D2754B0fC1a3`
-* Augur (REP): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
-* Basic Attention Token (BAT): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
-* Chainlink (LINK): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
-* Dai (DAI): `0xF2a50BcCEE8BEb7807dA40609620e454465B40A1`
-* Orchid (OXT): `0xf52488AAA1ab1b1EB659d6632415727108600BCb`
-* Tezos (XTZ): `tz1T1idcT5hfyjfLHWeqbYvmrcYn5JgwrJKW`
-* Zcash (ZCH): `t1YTGVoVbeCuTn3Pg9MPGrSqweFLPGTQ7on`
-* 0x (ZRX): `0x4e52AAfC6dAb2b7812A0a7C24a6DF6FAab65Fc9a`
-
+* SISPOP (SIS): `47aX25v57uAd1pJR54WWgD9jqaZcKawYaTojcK6ao9hQgFkkkrVEqhgDfY61wvM6TogfXDXddwzsh69TB7FVhTYQRRBmSRU`
 Credits
 ---------
 
