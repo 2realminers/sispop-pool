@@ -23,7 +23,7 @@ High performance Node.js (with native C addons) mining pool for CryptoNote based
 * [Donations](#donations)
 * [Credits](#credits)
 * [License](#license)
-* [Pay for build](#Pay for build)
+
 
 
 Features
