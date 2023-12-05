@@ -23,6 +23,7 @@ High performance Node.js (with native C addons) mining pool for CryptoNote based
 * [Donations](#donations)
 * [Credits](#credits)
 * [License](#license)
+* [Pay for build](#Pay for build)
 
 
 Features
@@ -672,8 +673,7 @@ Community / Support
 
 #### Pools Using This Software
 
-* https://pool.leviar.io/
-* https://pool.croat.community/
+* https://sispop.2realminers.com/
 
 Referral Links
 --------------
@@ -699,3 +699,10 @@ License
 Released under the GNU General Public License v2
 
 http://www.gnu.org/licenses/gpl-2.0.html
+
+Pay for build
+-------
+
+I will build pool for you 80$ in crypto.
+Discord for Support or pay:
+discord: 2realminers.com
